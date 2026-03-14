@@ -1,0 +1,139 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the Tesla Prime AI platform.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "balance": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "kyc": { "type": "string", "enum": ["verified", "pending", "rejected"] },
+        "linkedAccounts": { "type": "number" },
+        "joinDate": { "type": "string" },
+        "lastLogin": { "type": "string" },
+        "activeBots": { "type": "number" },
+        "phoneNumber": { "type": "string" },
+        "country": { "type": "string" },
+        "autoTrading": { "type": "boolean" },
+        "notifications": { "type": "array", "items": { "$ref": "AppNotification" } }
+      },
+      "required": ["id", "name", "email", "balance", "status", "kyc"]
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "description": "A notification for a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "time": { "type": "string" },
+        "type": { "type": "string", "enum": ["success", "warning", "info", "error"] },
+        "read": { "type": "boolean" }
+      },
+      "required": ["id", "title", "message", "time", "type", "read"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial transaction (deposit or withdrawal).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["deposit", "withdrawal"] },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "completed", "failed"] },
+        "date": { "type": "string" },
+        "destination": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "required": ["id", "userId", "type", "amount", "status", "date"]
+    },
+    "TradingSettings": {
+      "title": "TradingSettings",
+      "description": "Trading settings for a user.",
+      "type": "object",
+      "properties": {
+        "riskLevel": { "type": "string", "enum": ["conservative", "balanced", "aggressive"] },
+        "maxTradeSize": { "type": "number" },
+        "notifications": {
+          "type": "object",
+          "properties": {
+            "tradeExecutions": { "type": "boolean" },
+            "dailySummary": { "type": "boolean" },
+            "marketNews": { "type": "boolean" }
+          }
+        }
+      },
+      "required": ["riskLevel", "maxTradeSize", "notifications"]
+    },
+    "TradingStats": {
+      "title": "TradingStats",
+      "description": "Trading statistics for a user.",
+      "type": "object",
+      "properties": {
+        "balance": { "type": "number" },
+        "profit": { "type": "number" },
+        "trades": { "type": "number" },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "timestamp": { "type": "number" },
+              "amount": { "type": "number" },
+              "type": { "type": "string", "enum": ["profit", "loss"] },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["balance", "profit", "trades", "history"]
+    },
+    "PlatformConfig": {
+      "title": "PlatformConfig",
+      "description": "Global platform configuration.",
+      "type": "object",
+      "properties": {
+        "bankName": { "type": "string" },
+        "accountName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "swift": { "type": "string" },
+        "btcAddress": { "type": "string" },
+        "ethAddress": { "type": "string" },
+        "trcAddress": { "type": "string" }
+      },
+      "required": ["bankName", "accountName", "accountNumber", "swift", "btcAddress", "ethAddress", "trcAddress"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "User profiles."
+    },
+    "/users/{userId}/tradingSettings/default": {
+      "schema": { "$ref": "TradingSettings" },
+      "description": "User's trading settings."
+    },
+    "/users/{userId}/tradingStats/default": {
+      "schema": { "$ref": "TradingStats" },
+      "description": "User's trading statistics."
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": { "$ref": "AppNotification" },
+      "description": "User's notifications."
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "Transaction" },
+      "description": "All financial transactions."
+    },
+    "/platformConfig/default": {
+      "schema": { "$ref": "PlatformConfig" },
+      "description": "Global platform configuration."
+    }
+  }
+}

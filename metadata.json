@@ -1,0 +1,7 @@
+{
+  "name": "Tesla Prime AI",
+  "description": "Tesla Prime AI Investment Broker V4.2 - A sophisticated AI-driven trading platform featuring high-frequency algorithmic execution.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

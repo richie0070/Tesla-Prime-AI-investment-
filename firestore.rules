@@ -1,0 +1,189 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - id: string
+    //   - name: string
+    //   - email: string
+    //   - balance: number
+    //   - status: string (active, suspended)
+    //   - kyc: string (verified, pending, rejected)
+    //   - linkedAccounts: number
+    //   - joinDate: string
+    //   - lastLogin: string
+    //   - activeBots: number
+    //   - phoneNumber: string
+    //   - country: string
+    //   - autoTrading: boolean
+    //   - notifications: array
+    //
+    // Collection: users/{userId}/tradingSettings
+    // Document ID: default
+    // Fields:
+    //   - riskLevel: string (conservative, balanced, aggressive)
+    //   - maxTradeSize: number
+    //   - notifications: map (tradeExecutions, dailySummary, marketNews)
+    //
+    // Collection: users/{userId}/tradingStats
+    // Document ID: default
+    // Fields:
+    //   - balance: number
+    //   - profit: number
+    //   - trades: number
+    //   - history: array
+    //
+    // Collection: users/{userId}/notifications
+    // Document ID: {notificationId}
+    // Fields:
+    //   - id: string
+    //   - title: string
+    //   - message: string
+    //   - time: string
+    //   - type: string (success, warning, info, error)
+    //   - read: boolean
+    //
+    // Collection: transactions
+    // Document ID: {transactionId}
+    // Fields:
+    //   - id: string
+    //   - userId: string
+    //   - type: string (deposit, withdrawal)
+    //   - amount: number
+    //   - status: string (pending, completed, failed)
+    //   - date: string
+    //   - destination: string (optional)
+    //   - note: string (optional)
+    //
+    // Collection: platformConfig
+    // Document ID: default
+    // Fields:
+    //   - bankName: string
+    //   - accountName: string
+    //   - accountNumber: string
+    //   - swift: string
+    //   - btcAddress: string
+    //   - ethAddress: string
+    //   - trcAddress: string
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.email == "richie00709@gmail.com";
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.id is string &&
+             data.name is string && data.name.size() < 100 &&
+             data.email is string && data.email.size() < 100 &&
+             data.balance is number && data.balance >= 0 &&
+             data.status in ['active', 'suspended'] &&
+             data.kyc in ['verified', 'pending', 'rejected'];
+    }
+
+    function isValidTradingSettings(data) {
+      return data.riskLevel in ['conservative', 'balanced', 'aggressive'] &&
+             data.maxTradeSize is number && data.maxTradeSize >= 0 &&
+             data.notifications is map &&
+             data.notifications.keys().hasOnly(['tradeExecutions', 'dailySummary', 'marketNews']);
+    }
+
+    function isValidTradingStats(data) {
+      return data.balance is number && data.balance >= 0 &&
+             data.profit is number &&
+             data.trades is number && data.trades >= 0 &&
+             data.history is list && data.history.size() <= 1000;
+    }
+
+    function isValidNotification(data) {
+      return data.id is string &&
+             data.title is string && data.title.size() < 200 &&
+             data.message is string && data.message.size() < 1000 &&
+             data.time is string && data.time.size() < 100 &&
+             data.type in ['success', 'warning', 'info', 'error'] &&
+             data.read is bool;
+    }
+
+    function isValidTransaction(data) {
+      return data.id is string &&
+             data.userId is string &&
+             data.type in ['deposit', 'withdrawal'] &&
+             data.amount is number && data.amount > 0 &&
+             data.status in ['pending', 'completed', 'failed'] &&
+             data.date is string && data.date.size() < 100;
+    }
+
+    function isValidPlatformConfig(data) {
+      return data.bankName is string && data.bankName.size() < 200 &&
+             data.accountName is string && data.accountName.size() < 200 &&
+             data.accountNumber is string && data.accountNumber.size() < 100 &&
+             data.swift is string && data.swift.size() < 50 &&
+             data.btcAddress is string && data.btcAddress.size() < 100 &&
+             data.ethAddress is string && data.ethAddress.size() < 100 &&
+             data.trcAddress is string && data.trcAddress.size() < 100;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data);
+      allow update: if (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data);
+      allow delete: if isAdmin();
+
+      match /tradingSettings/default {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if (isOwner(userId) || isAdmin()) && isValidTradingSettings(request.resource.data);
+      }
+
+      match /tradingStats/default {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if (isOwner(userId) || isAdmin()) && isValidTradingStats(request.resource.data);
+      }
+
+      match /notifications/{notificationId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if (isOwner(userId) || isAdmin()) && isValidNotification(request.resource.data);
+      }
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && (request.auth.uid == request.resource.data.userId || isAdmin()) && isValidTransaction(request.resource.data);
+      allow update: if isAdmin() && isValidTransaction(request.resource.data);
+    }
+
+    match /platformConfig/default {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() && isValidPlatformConfig(request.resource.data);
+    }
+  }
+}
