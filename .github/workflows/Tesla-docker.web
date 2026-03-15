@@ -1,0 +1,113 @@
+infra/
+  docker/
+    Dockerfile.web
+    Dockerfile.admin
+    Dockerfile.agent
+    Dockerfile.api
+    docker-compose.yml
+    .env.example
+
+  nginx/
+    nginx.conf
+
+    version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: tesla-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: teslaprime
+      POSTGRES_USER: tesla
+      POSTGRES_PASSWORD: tesla123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: tesla-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  api-gateway:
+    build:
+      context: ../../
+      dockerfile: infra/docker/Dockerfile.api
+    container_name: tesla-api-gateway
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://tesla:tesla123@postgres:5432/teslaprime
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres
+      - redis
+
+  web:
+    build:
+      context: ../../
+      dockerfile: infra/docker/Dockerfile.web
+    container_name: tesla-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+
+  nginx:
+    image: nginx:latest
+    container_name: tesla-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - api-gateway
+
+volumes:
+  postgres_data:
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 4000
+
+CMD ["npm", "run", "start:api"]
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start"]
+NODE_ENV=development
+
+DATABASE_URL=postgres://tesla:tesla123@postgres:5432/teslaprime
+REDIS_URL=redis://redis:6379
+
+JWT_SECRET=change_me
+API_PORT=4000
+WEB_PORT=3000
+ADMIN_PORT=3001
+AGENT_PORT=3002
+  
