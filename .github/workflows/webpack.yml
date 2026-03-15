@@ -1,0 +1,28 @@
+{
+  "name": "tesla-prime-ai",
+  "version": "1.0.0",
+  "description": "Institutional-grade fintech investment platform built with Node.js and Webpack.",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "dev": "nodemon --watch src --exec node dist/server.js",
+    "start": "node dist/server.js"
+  },
+  "keywords": [
+    "fintech",
+    "nodejs",
+    "webpack",
+    "tesla-prime-ai"
+  ],
+  "author": "Tesla Prime AI",
+  "license": "LICENSED",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
