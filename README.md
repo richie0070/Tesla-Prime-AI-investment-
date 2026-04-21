@@ -2,7 +2,7 @@
 ---
 
 Tesla Prime AI
-
+teslaprimeai.netlify.app/
      
 
 Tesla Prime AI is an institutional-grade fintech investment platform engineered to provide a scalable infrastructure for digital portfolio management, AI-assisted investment strategies, real estate investment opportunities, and global reseller commerce.
@@ -540,6 +540,13 @@ This repository contains architecture and development materials for the Tesla Pr
 
 Usage and redistribution are subject to repository license terms.
 
-
+richie0070/Tesla-Prime-AI-investment- on main
+https://ais-dev-egoi5ipu24jjcbkkxdsmoc-4893080511.europe-west2.run.app
 ---
 
+
+// [START auth_google_provider_create_modular]
+import { GoogleAuthProvider } from "firebase/auth";
+
+const provider = new GoogleAuthProvider();
+// [END auth_google_provider_create_modular]
