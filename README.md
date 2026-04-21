@@ -2,7 +2,7 @@
 ---
 
 Tesla Prime AI
-
+teslaprimeai.netlify.app/
      
 
 Tesla Prime AI is an institutional-grade fintech investment platform engineered to provide a scalable infrastructure for digital portfolio management, AI-assisted investment strategies, real estate investment opportunities, and global reseller commerce.
