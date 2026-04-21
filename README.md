@@ -544,3 +544,9 @@ richie0070/Tesla-Prime-AI-investment- on main
 https://ais-dev-egoi5ipu24jjcbkkxdsmoc-4893080511.europe-west2.run.app
 ---
 
+
+// [START auth_google_provider_create_modular]
+import { GoogleAuthProvider } from "firebase/auth";
+
+const provider = new GoogleAuthProvider();
+// [END auth_google_provider_create_modular]
