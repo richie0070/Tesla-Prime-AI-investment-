@@ -540,8 +540,7 @@ This repository contains architecture and development materials for the Tesla Pr
 
 Usage and redistribution are subject to repository license terms.
 
-richie0070/Tesla-Prime-AI-investment- on main
-https://ais-dev-egoi5ipu24jjcbkkxdsmoc-4893080511.europe-west2.run.app
+
 ---
 
 
